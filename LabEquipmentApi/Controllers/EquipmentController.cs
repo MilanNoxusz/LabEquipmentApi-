@@ -1,14 +1,15 @@
+using FluentValidation;
+using LabEquipmentApi.Contracts.Equipment;
+using LabEquipmentApi.Data;
+using LabEquipmentApi.Domain;
+using Mapster;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using LabEquipmentApi.Data;
-using LabEquipmentApi.Domain;
-using Mapster;
-using LabEquipmentApi.Contracts.Equipment;
 
 namespace LabEquipmentApi.Controllers
 {
@@ -17,10 +18,12 @@ namespace LabEquipmentApi.Controllers
     public class EquipmentController : ControllerBase
     {
         private readonly LabDbContext _context;
+        private readonly IValidator<CreateEquipmentRequest> _createValidator;
 
-        public EquipmentController(LabDbContext context)
+        public EquipmentController(LabDbContext context, IValidator<CreateEquipmentRequest> createValidator)
         {
             _context = context;
+            _createValidator = createValidator;
         }
 
         // GET: api/Equipment
@@ -42,6 +45,18 @@ namespace LabEquipmentApi.Controllers
             }
 
             return equipment;
+        }
+        // GET: api/equipment/available
+        [HttpGet("available")]
+        public async Task<ActionResult<IEnumerable<EquipmentListItemResponse>>> GetAvailableEquipment()
+        {
+            var equipment = await _context.EquipmentItems
+                .Where(e => e.IsAvailable)
+                .OrderBy(e => e.Name)
+                .ProjectToType<EquipmentListItemResponse>()
+                .ToListAsync();
+
+            return Ok(equipment);
         }
 
         // PUT: api/Equipment/5
@@ -78,16 +93,33 @@ namespace LabEquipmentApi.Controllers
         // POST: api/Equipment
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Equipment>> PostEquipment(Equipment equipment)
+        public async Task<ActionResult<Equipment>> PostEquipment(CreateEquipmentRequest request)
         {
+            var validationResult = await _createValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
+
+            var equipment = new Equipment
+            {
+                Name = request.Name,
+                Room = request.Room,
+                IsAvailable = true
+            };
+
             _context.EquipmentItems.Add(equipment);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetEquipment", new { id = equipment.Id }, equipment);
         }
 
-        // DELETE: api/Equipment/5
-        [HttpDelete("{id}")]
+            // DELETE: api/Equipment/5
+            [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEquipment(int id)
         {
             var equipment = await _context.EquipmentItems.FindAsync(id);
@@ -100,18 +132,6 @@ namespace LabEquipmentApi.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-        // GET: api/equipment/available
-        [HttpGet("available")]
-        public async Task<ActionResult<IEnumerable<EquipmentListItemResponse>>> GetAvailableEquipment()
-        {
-            var equipment = await _context.EquipmentItems
-                .Where(e => e.IsAvailable)
-                .OrderBy(e => e.Name)
-                .ProjectToType<EquipmentListItemResponse>()
-                .ToListAsync();
-
-            return Ok(equipment);
         }
         private bool EquipmentExists(int id)
         {

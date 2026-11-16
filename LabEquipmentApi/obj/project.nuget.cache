@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "4ThljHjQ5NA=",
+  "dgSpecHash": "mzrGkSfos7Q=",
   "success": true,
   "projectFilePath": "E:\\Backrooms\\szorgalmi\\LabEquipmentApi\\LabEquipmentApi\\LabEquipmentApi.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Noxusz\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",
+    "C:\\Users\\Noxusz\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\12.1.1\\fluentvalidation.dependencyinjectionextensions.12.1.1.nupkg.sha512",
     "C:\\Users\\Noxusz\\.nuget\\packages\\humanizer\\2.14.1\\humanizer.2.14.1.nupkg.sha512",
     "C:\\Users\\Noxusz\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Noxusz\\.nuget\\packages\\humanizer.core.af\\2.14.1\\humanizer.core.af.2.14.1.nupkg.sha512",
